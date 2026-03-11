@@ -9,8 +9,8 @@ import {
 // KONFIGURASI DATABASE & AUTH
 // ==========================================
 // PASTE URL DEPLOYMENT BARU ANDA DI BAWAH INI
-const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbwbSkSST5FEdgPC0HDEDkw__tVXJ9DN31zcHgTwZA0aUXdmF99961DhgWBgyNVILvJtAA/exec"; 
-const ADMIN_PIN = "1026";
+const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbxJHxOVT9eUg5Z7w_KwZG9vCgEzcvq6sEZkjbTDx9T9HOIA76URIosBNqM7m28C20Hb/exec"; 
+const ADMIN_PIN = "0333";
 
 // --- DATA DUMMY ---
 const DUMMY_TEAMS = [
@@ -29,6 +29,31 @@ const DUMMY_MATCHES = [
 ];
 
 // ==========================================
+// FUNGSI PENYARING TANGGAL & WAKTU (ANTI 1899 BUG)
+// ==========================================
+const formatTimeSafely = (timeStr) => {
+  if (!timeStr) return '';
+  // Jika masih ada sisa bug 1899 dari cache, kita ekstrak jamnya saja
+  if (timeStr.includes('T')) {
+    const d = new Date(timeStr);
+    return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  }
+  // Jika formatnya 15:30:00, kita potong detik-nya menjadi 15:30
+  return timeStr.substring(0, 5); 
+};
+
+const formatDateSafely = (dateStr, formatType = 'short') => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d)) return dateStr; // fallback jika format tidak dikenali
+  
+  if (formatType === 'long') {
+     return d.toLocaleDateString('id-ID', { weekday:'long', day: 'numeric', month: 'long' });
+  }
+  return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+};
+
+// ==========================================
 // MODAL KONFIRMASI MODERN
 // ==========================================
 function ConfirmModal({ isOpen, onClose, onConfirm, title, message }) {
@@ -36,9 +61,7 @@ function ConfirmModal({ isOpen, onClose, onConfirm, title, message }) {
   return (
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[100] px-4 transition-opacity duration-300">
       <div className="bg-white rounded-[24px] shadow-2xl p-8 w-full max-w-sm transform transition-all scale-100 animate-in fade-in zoom-in-95 duration-200">
-        <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-500 mb-5">
-          <AlertTriangle size={24} />
-        </div>
+        <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-500 mb-5"><AlertTriangle size={24} /></div>
         <h3 className="text-xl font-extrabold text-slate-800 mb-2">{title}</h3>
         <p className="text-slate-500 leading-relaxed mb-8">{message}</p>
         <div className="flex justify-end space-x-3">
@@ -83,18 +106,13 @@ export default function App() {
     }
   };
 
-  // SISTEM API BARU (ACTION-BASED)
   const syncDataToSheets = async (action, payload) => {
     if (!GOOGLE_SHEETS_API_URL) return;
     try {
       const formData = new URLSearchParams();
       formData.append('action', action);
       formData.append('payload', JSON.stringify(payload));
-
-      await fetch(GOOGLE_SHEETS_API_URL, {
-        method: 'POST',
-        body: formData
-      });
+      await fetch(GOOGLE_SHEETS_API_URL, { method: 'POST', body: formData });
     } catch (error) {
       console.error("Gagal koneksi ke sheets:", error);
       alert("Terjadi kesalahan jaringan saat menyimpan ke server.");
@@ -125,33 +143,21 @@ export default function App() {
   }, [teams, matches]);
 
   const handleAdminLoginClick = () => {
-    setShowLoginModal(true);
-    setPinInput('');
-    setLoginError('');
+    setShowLoginModal(true); setPinInput(''); setLoginError('');
   };
 
   const submitLogin = (e) => {
     e.preventDefault();
-    if (pinInput === ADMIN_PIN) {
-      setIsAdmin(true);
-      setAppMode('admin');
-      setShowLoginModal(false);
-    } else {
-      setLoginError('PIN tidak valid. Coba lagi.');
-    }
+    if (pinInput === ADMIN_PIN) { setIsAdmin(true); setAppMode('admin'); setShowLoginModal(false); } 
+    else { setLoginError('PIN tidak valid. Coba lagi.'); }
   };
 
-  const handleLogout = () => {
-    setIsAdmin(false);
-    setAppMode('public');
-  };
-
+  const handleLogout = () => { setIsAdmin(false); setAppMode('public'); };
   const getTeamName = (id) => teams.find(t => t.id === id)?.name || 'TBD';
 
   const sharedProps = { 
     teams, matches, standings, getTeamName, 
-    handleAdminLoginClick, handleLogout, setTeams, setMatches,
-    syncDataToSheets
+    handleAdminLoginClick, handleLogout, setTeams, setMatches, syncDataToSheets
   };
 
   return (
@@ -162,21 +168,13 @@ export default function App() {
         </div>
       )}
 
-      {/* LOGIN MODAL */}
       {showLoginModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[100] px-4">
           <div className="bg-white rounded-[24px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] p-8 w-full max-w-sm animate-in fade-in zoom-in-95 duration-200 border border-slate-100">
-            <div className="flex items-center text-indigo-600 mb-8">
-              <div className="bg-indigo-50 p-3 rounded-2xl mr-4"><ShieldCheck size={28} /></div>
-              <div><h3 className="text-xl font-extrabold text-slate-800">Akses Panitia</h3><p className="text-sm text-slate-500 font-medium">Verifikasi identitas Anda</p></div>
-            </div>
+            <div className="flex items-center text-indigo-600 mb-8"><div className="bg-indigo-50 p-3 rounded-2xl mr-4"><ShieldCheck size={28} /></div><div><h3 className="text-xl font-extrabold text-slate-800">Akses Panitia</h3><p className="text-sm text-slate-500 font-medium">Verifikasi identitas</p></div></div>
             <form onSubmit={submitLogin}>
               <div className="mb-8">
-                <input
-                  type="password" autoFocus placeholder="••••"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-2xl tracking-[0.5em] text-center font-bold focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white outline-none transition-all"
-                  value={pinInput} onChange={(e) => setPinInput(e.target.value)}
-                />
+                <input type="password" autoFocus placeholder="••••" className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-2xl tracking-[0.5em] text-center font-bold focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white outline-none transition-all" value={pinInput} onChange={(e) => setPinInput(e.target.value)} />
                 {loginError && <p className="text-red-500 text-sm mt-3 font-semibold flex items-center justify-center"><AlertTriangle size={16} className="mr-1"/> {loginError}</p>}
               </div>
               <div className="flex gap-3">
@@ -255,8 +253,7 @@ function PublicLayout({ teams, matches, standings, getTeamName, handleAdminLogin
       {activeTab === 'beranda' && (
         <div className="relative overflow-hidden bg-[#0B1120] text-white pt-20 pb-28 px-4 sm:px-6 lg:px-8">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full overflow-hidden pointer-events-none">
-            <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-indigo-600/30 blur-[120px] mix-blend-screen"></div>
-            <div className="absolute bottom-[0%] -left-[10%] w-[50%] h-[50%] rounded-full bg-blue-500/20 blur-[100px] mix-blend-screen"></div>
+            <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-indigo-600/30 blur-[120px] mix-blend-screen"></div><div className="absolute bottom-[0%] -left-[10%] w-[50%] h-[50%] rounded-full bg-blue-500/20 blur-[100px] mix-blend-screen"></div>
           </div>
 
           <div className="max-w-7xl mx-auto relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12">
@@ -265,9 +262,7 @@ function PublicLayout({ teams, matches, standings, getTeamName, handleAdminLogin
                 <span className="flex h-2 w-2 relative"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
                 <span className="text-sm font-semibold text-slate-300 tracking-wide uppercase">Musim 2026 Sedang Berjalan</span>
               </div>
-              <h1 className="text-5xl lg:text-7xl font-extrabold mb-6 leading-[1.1] tracking-tight text-white">
-                Dukung Tim <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Kebanggaan Anda</span>
-              </h1>
+              <h1 className="text-5xl lg:text-7xl font-extrabold mb-6 leading-[1.1] tracking-tight text-white">Dukung Tim <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Kebanggaan Anda</span></h1>
               <p className="text-slate-400 text-lg lg:text-xl mb-10 max-w-2xl mx-auto lg:mx-0 font-medium">Saksikan aksi memukau dari tim-tim terbaik dusun. Pantau jadwal, hasil laga, dan klasemen terkini secara real-time.</p>
               <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
                 <button onClick={() => setActiveTab('jadwal')} className="bg-white text-slate-900 font-extrabold px-8 py-4 rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.3)] hover:scale-105 transition-all flex items-center justify-center">Lihat Jadwal Lengkap <ChevronRight size={20} className="ml-2" /></button>
@@ -286,8 +281,8 @@ function PublicLayout({ teams, matches, standings, getTeamName, handleAdminLogin
                     <div className="flex-1 text-center"><div className="text-2xl font-black text-white truncate px-2">{getTeamName(nextMatch.team2Id)}</div></div>
                   </div>
                   <div className="mt-8 bg-slate-900/50 rounded-2xl p-4 text-center border border-slate-700/50">
-                    <div className="text-white font-bold text-lg mb-1">{new Date(nextMatch.date).toLocaleDateString('id-ID', { weekday:'long', day: 'numeric', month: 'long' })}</div>
-                    <div className="text-indigo-400 font-semibold flex justify-center items-center"><CalendarDays size={16} className="mr-2"/> Pukul {nextMatch.time} WIB</div>
+                    <div className="text-white font-bold text-lg mb-1">{formatDateSafely(nextMatch.date, 'long')}</div>
+                    <div className="text-indigo-400 font-semibold flex justify-center items-center"><CalendarDays size={16} className="mr-2"/> Pukul {formatTimeSafely(nextMatch.time)} WIB</div>
                   </div>
                 </div>
               ) : (
@@ -454,8 +449,8 @@ function JadwalView({ matches, getTeamName }) {
         <div key={match.id} className="bg-white rounded-[24px] shadow-sm border border-slate-100 p-2 overflow-hidden flex flex-col md:flex-row hover:shadow-md transition-shadow group">
           <div className="bg-slate-50 rounded-xl md:w-48 p-4 flex flex-col justify-center items-center">
             <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest bg-indigo-100/50 px-3 py-1 rounded-full mb-2">{match.type}</span>
-            <span className="text-2xl font-black text-slate-800">{new Date(match.date).toLocaleDateString('id-ID', {day: '2-digit', month: 'short'})}</span>
-            <span className="text-sm font-bold text-slate-500">{match.time} WIB</span>
+            <span className="text-2xl font-black text-slate-800">{formatDateSafely(match.date, 'short')}</span>
+            <span className="text-sm font-bold text-slate-500">{formatTimeSafely(match.time)} WIB</span>
           </div>
           <div className="flex-1 p-6 flex flex-col justify-center">
             <div className="flex items-center justify-between">
@@ -544,13 +539,13 @@ function AdminTimPanel({ teams, setTeams, syncDataToSheets }) {
     if(!newTeam) return;
     const newObj = { id: 't' + Date.now(), name: newTeam, group: newGroup };
     setTeams([...teams, newObj]);
-    syncDataToSheets('ADD_TEAM', newObj); // Panggil Action ADD
+    syncDataToSheets('ADD_TEAM', newObj);
     setNewTeam('');
   };
 
   const confirmDelete = () => {
     setTeams(teams.filter(t => t.id !== deleteId));
-    syncDataToSheets('DELETE_TEAM', { id: deleteId }); // Panggil Action DELETE
+    syncDataToSheets('DELETE_TEAM', { id: deleteId });
     setDeleteId(null);
   };
 
@@ -593,12 +588,12 @@ function AdminJadwalPanel({ teams, matches, setMatches, syncDataToSheets }) {
     e.preventDefault();
     const newObj = { id: 'm' + Date.now(), ...formData, score1: 0, score2: 0, status: 'scheduled' };
     setMatches([...matches, newObj]);
-    syncDataToSheets('ADD_MATCH', newObj); // Panggil Action ADD
+    syncDataToSheets('ADD_MATCH', newObj);
   };
 
   const confirmDelete = () => {
     setMatches(matches.filter(m => m.id !== deleteId));
-    syncDataToSheets('DELETE_MATCH', { id: deleteId }); // Panggil Action DELETE
+    syncDataToSheets('DELETE_MATCH', { id: deleteId });
     setDeleteId(null);
   };
 
@@ -622,7 +617,7 @@ function AdminJadwalPanel({ teams, matches, setMatches, syncDataToSheets }) {
           {matches.map(match => (
             <div key={match.id} className="p-4 flex flex-col md:flex-row items-center justify-between hover:bg-slate-50 rounded-2xl min-w-[700px] transition-colors group">
                <div className="flex-1 mb-2 md:mb-0 w-full flex items-center">
-                  <div className="w-32"><div className="text-[10px] font-black text-indigo-500 mb-1 uppercase tracking-widest">{match.type}</div><div className="text-sm font-bold text-slate-500">{match.date}</div></div>
+                  <div className="w-32"><div className="text-[10px] font-black text-indigo-500 mb-1 uppercase tracking-widest">{match.type}</div><div className="text-sm font-bold text-slate-500">{formatDateSafely(match.date, 'short')}</div></div>
                   <div className="font-extrabold text-slate-800 text-xl ml-4">{teams.find(t=>t.id===match.team1Id)?.name || 'TBD'} <span className="text-slate-300 font-normal mx-3 italic">vs</span> {teams.find(t=>t.id===match.team2Id)?.name || 'TBD'}</div>
                </div>
                
@@ -641,7 +636,7 @@ function AdminJadwalPanel({ teams, matches, setMatches, syncDataToSheets }) {
                         return m;
                       });
                       setMatches(updatedMatches);
-                      if(updatedObj) syncDataToSheets('UPDATE_MATCH', updatedObj); // Panggil Action UPDATE
+                      if(updatedObj) syncDataToSheets('UPDATE_MATCH', updatedObj);
                       setEditingId(null);
                     }} className="bg-emerald-500 text-white p-3 rounded-xl hover:bg-emerald-600 transition-colors shadow-sm"><Save size={20} /></button>
                     <button onClick={() => setEditingId(null)} className="bg-slate-200 text-slate-600 p-3 rounded-xl hover:bg-slate-300 transition-colors"><X size={20} /></button>
