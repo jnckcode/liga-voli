@@ -8,7 +8,7 @@ import {
 // ==========================================
 // KONFIGURASI DATABASE & AUTH
 // ==========================================
-const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbx36_2Ncs0Ae_rENr68ocodHWd-BJXcuw3mPg49rwsA0EmQG4U1AcXSsK0lkVqoyqeqDQ/exec"; 
+const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbyV6K_n9U9cijCqiIZ8IjWuneadaYkFSn6ICTllI07A3uJqgxHri8F_gJuvaeS9gxY/exec"; 
 const ADMIN_PIN = "2026";
 
 // --- DATA DUMMY ---
@@ -82,25 +82,37 @@ export default function App() {
     }
   };
 
-  // Fungsi POST Data ke Google Sheets
+  // Fungsi POST Data ke Google Sheets (Revisi Anti-Blank Form-URLEncoded)
   const syncDataToSheets = async (type, newData) => {
-    if (!GOOGLE_SHEETS_API_URL) return; // Abaikan jika API URL kosong (mode Dummy)
+    if (!GOOGLE_SHEETS_API_URL) return;
     
     setIsLoading(true);
     try {
-      // Menggunakan tipe text/plain untuk bypass preflight CORS di browser
-      await fetch(GOOGLE_SHEETS_API_URL, {
+      // Kita ubah format pengiriman menggunakan standar Form (Seperti form login jadul)
+      // Ini dijamin 100% dibaca dengan benar oleh server Google!
+      const formData = new URLSearchParams();
+      formData.append('type', type);
+      formData.append('data', JSON.stringify(newData));
+
+      const response = await fetch(GOOGLE_SHEETS_API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ type: type, data: newData })
+        // Tidak perlu headers 'Content-Type' aneh-aneh karena URLSearchParams otomatis men-setnya
+        body: formData
       });
+      
+      const result = await response.json();
+      if (result.status === 'error') {
+        console.error("Server Google menolak:", result.message);
+        alert("Gagal menyimpan ke Database: " + result.message);
+      }
     } catch (error) {
-      console.error("Gagal sinkronisasi data ke sheets:", error);
+      console.error("Gagal koneksi ke sheets:", error);
       alert("Terjadi kesalahan jaringan saat menyimpan ke server.");
     } finally {
       setIsLoading(false);
     }
   };
+
 
   const standings = useMemo(() => {
     let table = teams.map(team => ({
@@ -889,6 +901,5 @@ function AdminJadwalPanel({ teams, matches, setMatches, syncDataToSheets }) {
     </div>
   )
 }
-
 
 
