@@ -9,8 +9,8 @@ import {
 // KONFIGURASI DATABASE & AUTH
 // ==========================================
 // PASTE URL DEPLOYMENT BARU ANDA DI BAWAH INI
-const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycby2j-8_cwfhQqg-0bv-Xhh8oIrDMeLVH0eB1qzwb9ilSmY6ckfTLMiH6NTEBArig4yf/exec"; 
-const ADMIN_PIN = "2026";
+const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbwbSkSST5FEdgPC0HDEDkw__tVXJ9DN31zcHgTwZA0aUXdmF99961DhgWBgyNVILvJtAA/exec"; 
+const ADMIN_PIN = "1026";
 
 // --- DATA DUMMY ---
 const DUMMY_TEAMS = [
