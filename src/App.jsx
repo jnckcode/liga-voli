@@ -323,7 +323,7 @@ function PublicLayout({ teams, matches, standings, getTeamName, handleAdminLogin
                   {standings.length === 0 && <div className="p-8 text-center text-slate-400 font-medium">Data belum tersedia</div>}
                 </div>
                 <div className="p-4 border-t border-slate-100"><button onClick={() => setActiveTab('klasemen')} className="w-full py-3 text-sm font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors">Lihat Lengkap &rarr;</button></div>
-              </div>F
+              </div>
             </div>
           </div>
         )}
