@@ -215,7 +215,7 @@ function PublicLayout({ teams, matches, standings, getTeamName, handleAdminLogin
             <div className="flex items-center group cursor-pointer" onClick={() => setActiveTab('beranda')}>
               <div className="bg-gradient-to-tr from-indigo-600 to-blue-500 text-white p-2 rounded-xl mr-3 shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform"><Trophy size={24} /></div>
               <span className="font-extrabold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 tracking-tight hidden sm:block">Liga<span className="text-indigo-600">Voli</span></span>
-              <span className="font-extrabold text-xl bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 tracking-tight sm:hidden">VOLLEY<span className="text-indigo-600">DUSUN</span></span>
+              <span className="font-extrabold text-xl bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 tracking-tight sm:hidden">Liga<span className="text-indigo-600">Voli</span></span>
             </div>
             
             <nav className="hidden md:flex space-x-2 items-center bg-slate-100/50 p-1.5 rounded-2xl border border-slate-200/50">
