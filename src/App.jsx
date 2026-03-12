@@ -214,7 +214,7 @@ function PublicLayout({ teams, matches, standings, getTeamName, handleAdminLogin
           <div className="flex justify-between h-20 items-center">
             <div className="flex items-center group cursor-pointer" onClick={() => setActiveTab('beranda')}>
               <div className="bg-gradient-to-tr from-indigo-600 to-blue-500 text-white p-2 rounded-xl mr-3 shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform"><Trophy size={24} /></div>
-              <span className="font-extrabold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 tracking-tight hidden sm:block">VOLLEY<span className="text-indigo-600">DUSUN</span></span>
+              <span className="font-extrabold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 tracking-tight hidden sm:block">Liga<span className="text-indigo-600">Voli</span></span>
               <span className="font-extrabold text-xl bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 tracking-tight sm:hidden">VOLLEY<span className="text-indigo-600">DUSUN</span></span>
             </div>
             
@@ -323,7 +323,7 @@ function PublicLayout({ teams, matches, standings, getTeamName, handleAdminLogin
                   {standings.length === 0 && <div className="p-8 text-center text-slate-400 font-medium">Data belum tersedia</div>}
                 </div>
                 <div className="p-4 border-t border-slate-100"><button onClick={() => setActiveTab('klasemen')} className="w-full py-3 text-sm font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors">Lihat Lengkap &rarr;</button></div>
-              </div>
+              </div>F
             </div>
           </div>
         )}
@@ -332,7 +332,7 @@ function PublicLayout({ teams, matches, standings, getTeamName, handleAdminLogin
         {activeTab === 'jadwal' && <JadwalView matches={matches} getTeamName={getTeamName} />}
         {activeTab === 'bagan' && <BaganView matches={matches} getTeamName={getTeamName} />}
       </main>
-      <footer className="bg-white border-t border-slate-200 mt-auto"><div className="max-w-7xl mx-auto px-4 py-8 text-center text-sm font-medium text-slate-500">Dibuat untuk Liga Volley Dusun &copy; {new Date().getFullYear()}</div></footer>
+      <footer className="bg-white border-t border-slate-200 mt-auto"><div className="max-w-7xl mx-auto px-4 py-8 text-center text-sm font-medium text-slate-500">Dibuat Oleh Jnckcode untuk Liga Voli RRC &copy; {new Date().getFullYear()}</div></footer>
     </div>
   );
 }
@@ -362,7 +362,7 @@ function AdminLayout({ teams, matches, standings, getTeamName, handleLogout, set
       {isSidebarOpen && <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-30 lg:hidden transition-opacity" onClick={() => setIsSidebarOpen(false)} />}
       <aside className={`fixed lg:relative z-40 h-[calc(100vh-2rem)] my-4 ml-4 rounded-[32px] bg-[#0A0F1C] text-white shrink-0 shadow-2xl transition-all duration-300 ease-out ${isSidebarOpen ? 'w-72 translate-x-0' : 'w-72 -translate-x-[120%] lg:w-0 lg:hidden'}`}>
         <div className="w-72 h-full flex flex-col overflow-hidden">
-          <div className="h-24 flex items-center px-8 shrink-0"><div className="w-10 h-10 bg-gradient-to-tr from-indigo-500 to-blue-500 rounded-xl flex items-center justify-center mr-4 shadow-lg shadow-indigo-500/30"><ShieldCheck className="text-white" size={20} /></div><span className="text-xl font-extrabold tracking-tight">Panitia<span className="text-indigo-400">Hub</span></span></div>
+          <div className="h-24 flex items-center px-8 shrink-0"><div className="w-10 h-10 bg-gradient-to-tr from-indigo-500 to-blue-500 rounded-xl flex items-center justify-center mr-4 shadow-lg shadow-indigo-500/30"><ShieldCheck className="text-white" size={20} /></div><span className="text-xl font-extrabold tracking-tight">Staff<span className="text-indigo-400">Hub</span></span></div>
           <div className="px-4 pb-6 space-y-2 flex-1 overflow-y-auto custom-scrollbar">
             <div className="text-[10px] uppercase tracking-widest text-slate-500 font-extrabold mb-3 mt-4 px-4">Menu Utama</div>
             <SidebarItem icon={LayoutDashboard} label="Ringkasan" id="dashboard" /><SidebarItem icon={Users} label="Kelola Tim" id="admin-tim" /><SidebarItem icon={CalendarDays} label="Kelola Laga" id="admin-jadwal" />
